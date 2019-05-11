@@ -1,0 +1,42 @@
+[
+  {
+    "mnemonic": "n",
+    "caption": "Preferences",
+    "id": "preferences",
+    "children": [
+      {
+        "mnemonic": "P",
+        "caption": "Package Settings",
+        "id": "package-settings",
+        "children": [
+          {
+            "caption": "iSort",
+            "children": [
+              {
+                "caption": "README",
+                "command": "open_file",
+                "args": {
+                  "file": "${packages}/iSort Python Imports/README.md"
+                }
+              },
+              {
+                "caption": "Settings",
+                "command": "edit_settings",
+                "args": {
+                  "base_file": "${packages}/iSort Python Imports/isort.sublime-settings"
+                }
+              },
+              {
+                "caption": "Key Bindings",
+                "command": "edit_settings",
+                "args": {
+                  "base_file": "${packages}/iSort Python Imports/Default ($platform).sublime-keymap"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

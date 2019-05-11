@@ -1,0 +1,7 @@
+[MESSAGES CONTROL]
+# W0201 Attribute '$' defined outside __init__
+# R0903 Too few public methods
+# E0401 Unable to import '$'
+# C0111 Missing function docstring
+disable=W0201, R0903, E0401, C0111
+max-line-length=120
