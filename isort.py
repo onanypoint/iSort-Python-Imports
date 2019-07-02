@@ -29,8 +29,6 @@ def find_isort():
     cmd = os.path.expanduser(cmd)
     cmd = sublime.expand_variables(cmd, sublime.active_window().extract_variables())
 
-    save_settings = not cmd
-
     for maybe_cmd in ['isort', 'isort.exe']:
         if not cmd:
             cmd = which(maybe_cmd)
@@ -84,28 +82,63 @@ class ISort:
         try:
             encoded_text = text.encode(self.encoding)
         except UnicodeEncodeError as err:
-            msg = "You may need to re-open this file with a different encoding. Current encoding is {}.".format(
-                self.encoding)
+            msg = "You may need to re-open this file with a different encoding. Current encoding is {}.".format(self.encoding)
             self.error("UnicodeEncodeError: {}\n\n{}".format(err, msg))
-
-        self.popen_args += ["-"]
-
-        try:
-            popen = subprocess.Popen(self.popen_args,
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE,
-                                     stdin=subprocess.PIPE,
-                                     cwd=self.popen_cwd,
-                                     env=self.popen_env,
-                                     startupinfo=self.popen_startupinfo)
-        except OSError as err:
-            # always show error in popup
-            msg = "You may need to install iSort and/or configure 'isort_command' in the plugin's Settings."
-            sublime.error_message("OSError: %s\n\n%s" % (err, msg))
             return
 
-        encoded_stdout, encoded_stderr = popen.communicate(encoded_text)
-        text = encoded_stdout.decode(self.encoding)
+        # Encode text
+        if get_setting("use_stdin"):
+            self.popen_args += ["-"]
+
+            try:
+                popen = subprocess.Popen(self.popen_args,
+                                         stdout=subprocess.PIPE,
+                                         stderr=subprocess.PIPE,
+                                         stdin=subprocess.PIPE,
+                                         cwd=self.popen_cwd,
+                                         env=self.popen_env,
+                                         startupinfo=self.popen_startupinfo)
+            except OSError as err:
+                # always show error in popup
+                msg = "You may need to install iSort and/or configure 'isort_command' in the plugin's Settings."
+                sublime.error_message("OSError: %s\n\n%s" % (err, msg))
+                return
+
+            encoded_stdout, encoded_stderr = popen.communicate(encoded_text)
+            text = encoded_stdout.decode(self.encoding)
+
+        else:
+            file_obj, temp_filename = tempfile.mkstemp(suffix=".py")
+
+            try:
+                temp_handle = os.fdopen(file_obj, 'wb')
+                temp_handle.write(encoded_text)
+                temp_handle.close()
+
+                self.popen_args += [temp_filename]
+
+                try:
+                    popen = subprocess.Popen(self.popen_args,
+                                             stdout=subprocess.PIPE,
+                                             stderr=subprocess.PIPE,
+                                             cwd=self.popen_cwd,
+                                             env=self.popen_env,
+                                             startupinfo=self.popen_startupinfo)
+                except OSError as err:
+                    # always show error in popup
+                    msg = "You may need to install iSort and/or configure 'isort_command' in the plugin's Settings."
+                    sublime.error_message("OSError: %s\n\n%s" % (err, msg))
+                    return
+
+                encoded_stdout, encoded_stderr = popen.communicate()
+
+                open_encoded = open
+
+                with open_encoded(temp_filename, encoding=self.encoding) as fp:
+                    text = fp.read()
+
+            finally:
+                os.unlink(temp_filename)
 
         if popen.returncode not in (0, 2):
             stderr = encoded_stderr.decode(self.encoding)

@@ -1,15 +1,19 @@
 {
-    // full path and command to run isort
+    // Full path and command to run isort
     "isort_command": "",
 
-    // run isort before saving document
+    // Run isort before saving document
     "on_save": false,
 
-    // report errors in popup dialog (in addition to status bar)
+    // Report errors in popup dialog (in addition to status bar)
     "popup_errors": false,
 
-    // if no encoding is specified use this.  utf-8 is a good choice,
-    // ascii is (much) more restrictive.  any of these should work:
+    // If no encoding is specified use this. UTF-8 is a good choice,
+    // ascii is (much) more restrictive.  Any of these should work:
     // https://docs.python.org/2/library/codecs.html#standard-encodings
-    "default_encoding": "UTF-8"
+    "default_encoding": "UTF-8",
+
+    // Pass source code on stdin (otherwise, a temporary file is used).
+    // Disable this option in case of UnicodeEncodeErrors
+    "use_stdin": true
 }
