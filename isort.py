@@ -41,6 +41,7 @@ def find_isort():
 class ISort:
     def __init__(self, view):
         self.view = view
+        self.errors = []
 
     def __enter__(self):
         self.encoding = self.view.encoding()
