@@ -24,8 +24,8 @@ def is_python(view):
     return view.score_selector(0, 'source.python') > 0
 
 
-def find_isort():
-    cmd = get_setting("isort_command")
+def find_isort(view):
+    cmd = get_setting(view, "isort_command")
     cmd = os.path.expanduser(cmd)
     cmd = sublime.expand_variables(cmd, sublime.active_window().extract_variables())
 
@@ -70,9 +70,9 @@ class ISort:
         self.encoding = self.view.encoding()
 
         if self.encoding in ['Undefined', None]:
-            self.encoding = get_setting('default_encoding')
+            self.encoding = get_setting(self.view, 'default_encoding')
 
-        self.popen_args = shlex.split(find_isort(), posix=False)
+        self.popen_args = shlex.split(find_isort(self.view), posix=False)
 
         fname = self.view.file_name()
 
@@ -112,7 +112,7 @@ class ISort:
             return
 
         # Encode text
-        if get_setting("use_stdin"):
+        if get_setting(self.view, "use_stdin"):
             self.popen_args += ["-"]
 
             try:
@@ -203,7 +203,7 @@ class ISort:
         msg = msg % args
         self.errors.append(msg)
         self.view.set_status(KEY, 'iSort: %s' % ', '.join(self.errors))
-        if get_setting('popup_errors'):
+        if get_setting(self.view, 'popup_errors'):
             sublime.error_message(msg)
 
 
@@ -218,12 +218,12 @@ class SortImport(sublime_plugin.TextCommand):
 
 class EventListener(sublime_plugin.EventListener):
     def on_pre_save(self, view):  # pylint: disable=no-self-use
-        if get_setting('on_save'):
+        if get_setting(view, 'on_save'):
             view.run_command('sort_import')
 
 
-def get_setting(key, default_value=None):
-    settings = sublime.active_window().active_view().settings()
+def get_setting(view, key, default_value=None):
+    settings = view.settings()
     config = settings.get(SUBLIME_SETTINGS_KEY)
     if config is not None and key in config:
         return config[key]
