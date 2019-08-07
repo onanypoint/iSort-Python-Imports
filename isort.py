@@ -36,6 +36,31 @@ def find_isort():
     return cmd
 
 
+def get_config_file(path, name, default):
+    editor_config_file = None
+    for potential_settings_path in default:
+        expanded = os.path.expanduser(potential_settings_path)
+        if os.path.exists(expanded):
+            editor_config_file = expanded
+            break
+
+    tries = 0
+    current_directory = path
+    while current_directory and tries < 25:
+        potential_path = os.path.join(current_directory, name)
+        if os.path.exists(potential_path):
+            editor_config_file = potential_path
+            break
+
+        new_directory = os.path.split(current_directory)[0]
+        if current_directory == new_directory:
+            break
+        current_directory = new_directory
+        tries += 1
+
+    return editor_config_file
+
+
 class ISort:
     def __init__(self, view):
         self.view = view
@@ -114,6 +139,21 @@ class ISort:
                 temp_handle = os.fdopen(file_obj, 'wb')
                 temp_handle.write(encoded_text)
                 temp_handle.close()
+
+                config_files = []
+                config_files.append(get_config_file(self.popen_cwd, '.editorconfig', ['~/.editorconfig']))
+                config_files.append(get_config_file(self.popen_cwd, 'pyproject.toml', []))
+                config_files.append(get_config_file(
+                    self.popen_cwd,
+                    '.isort.cfg',
+                    ['~/.isort.cfg'],
+                ))
+                config_files.append(get_config_file(self.popen_cwd, 'setup.cfg', []))
+                config_files.append(get_config_file(self.popen_cwd, 'tox.ini', []))
+                config_files = list(filter(None, config_files))
+
+                if config_files:
+                    self.popen_args += ["-sp", config_files[-1]]
 
                 self.popen_args += [temp_filename]
 
